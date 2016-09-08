@@ -6,10 +6,13 @@ from lists.views import home_page
 from lists.models import Item
 from lists.models import List
 from django.utils.html import escape
+from lists.forms import ItemForm
 
 # Create your tests here.
 
 class HomePageTest(TestCase):
+    maxDiff = None
+    '''
     def test_root_url_resolves_to_home_page_view(self):
         found = resolve('/')
         self.assertEqual(found.func, home_page)
@@ -17,11 +20,20 @@ class HomePageTest(TestCase):
     def test_home_page_returns_correct_html(self):
         request = HttpRequest()
         response = home_page(request)
-        expected_html = render_to_string('home.html')
+        expected_html = render_to_string('home.html',{'form':ItemForm()})
+        self.assertMultiLineEqual(response.content.decode(),expected_html)
         #print(response.content.decode())
         #print(expected_html)
         #self.assertEqual(response.content.decode(),expected_html)
         #self.assertEqual('A new list item',expected_html)
+    '''
+    def test_home_page_renders_home_template(self):
+        response = self.client.get('/')
+        self.assertTemplateUsed(response,'home.html')
+
+    def test_home_page_uses_item_form(self):
+        response = self.client.get('/')
+        self.assertIsInstance(response.context['form'],ItemForm)
 
 
 class ListViewTest(TestCase):
@@ -120,7 +132,7 @@ class NewListTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'home.html')
         expected_error = escape("You can't have an empty list item")
-        print(response.content.decode())
+        #print(response.content.decode())
         self.assertContains(response, expected_error)
         
     def test_invalidation_errors_are_sent_back_to_home_page_template(self):
